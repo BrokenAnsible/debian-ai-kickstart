@@ -42,7 +42,7 @@ apt update && apt upgrade -y
 # Install Linux headers matching the running kernel
 if ! dpkg -l | grep -q "linux-headers-$(uname -r)"; then
     echo "Installing Linux headers for kernel $(uname -r)..."
-    sudo apt install -y linux-headers-$(uname -r) linux-headers-amd64
+    apt install -y linux-headers-$(uname -r) linux-headers-amd64
 else
     echo "Linux headers already installed."
 fi
@@ -50,8 +50,8 @@ fi
 # Check and install NVIDIA driver
 if ! dpkg -l | grep -q "^ii.*nvidia-driver"; then
     echo "Installing NVIDIA drivers..."
-    sudo apt install -y nvidia-driver firmware-misc-nonfree
-    echo "NVIDIA driver installed. Please reboot to load the driver."
+    apt install -y nvidia-driver firmware-misc-nonfree
+    echo "NVIDIA driver installed."
 else
     echo "NVIDIA driver already installed."
 fi
@@ -92,14 +92,6 @@ else
     gpasswd -a $DEB_USERNAME sudo
     echo "User added to sudo group. Please log out and back in for this to take effect."
 fi
-
-echo "Default user configured: $DEB_USERNAME"
-
-echo ""
-echo "=== Configure User Home Directory Startup ==="
-# Ensure user starts in their home directory
-echo 'cd ~' >> /home/$DEB_USERNAME/.bashrc
-echo "Configured $DEB_USERNAME to start in home directory"
 
 echo ""
 echo "=== Step 3: Install CUDA Repository ==="
