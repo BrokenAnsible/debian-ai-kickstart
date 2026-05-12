@@ -3,17 +3,15 @@
 # Debian 13 AI Server Setup Script
 # Run this after fresh Debian installation
 # Upgrades to Debian 13 (Trixie) and installs CUDA + UV for AI workflows
-# Create a template post install to save bandwidth for internet limits.
 
 set -e  # Exit on any error
 
-echo "=== WSL Debian 13 AI Setup Script ==="
+echo "=== Debian 13 AI Setup Script ==="
 echo "This script will:"
 echo "1. Update system packages"
 echo "2. Configure default sudo user"
-echo "3. Install CUDA 12.6 toolkit"
+echo "3. Install CUDA 13.1 toolkit"
 echo "4. Install UV (ultra-fast Python package manager)"
-echo "5. Configure WSL for optimal AI workflows"
 echo ""
 read -p "Continue? (y/N) " -n 1 -r
 echo
@@ -45,15 +43,6 @@ if ! dpkg -l | grep -q "linux-headers-$(uname -r)"; then
     apt install -y linux-headers-$(uname -r) linux-headers-amd64
 else
     echo "Linux headers already installed."
-fi
-
-# Check and install NVIDIA driver
-if ! dpkg -l | grep -q "^ii.*nvidia-driver"; then
-    echo "Installing NVIDIA drivers..."
-    apt install -y nvidia-driver firmware-misc-nonfree
-    echo "NVIDIA driver installed."
-else
-    echo "NVIDIA driver already installed."
 fi
 
 # Install curl first since we need it for other installations
@@ -99,7 +88,7 @@ echo "=== Step 3: Install CUDA Repository ==="
 if ! dpkg -l | grep -q cuda-keyring; then
     echo "Installing CUDA keyring..."
     # Download and install NVIDIA CUDA keyring
-    curl -L -o cuda-keyring_1.1-1_all.deb https://developer.download.nvidia.com/compute/cuda/repos/debian12/x86_64/cuda-keyring_1.1-1_all.deb
+    curl -L -o cuda-keyring_1.1-1_all.deb https://developer.download.nvidia.com/compute/cuda/repos/debian13/x86_64/cuda-keyring_1.1-1_all.deb
     dpkg -i cuda-keyring_1.1-1_all.deb
     rm cuda-keyring_1.1-1_all.deb
 
@@ -109,17 +98,15 @@ else
 fi
 
 echo ""
-echo "=== Step 3: Install CUDA Toolkit 12.6 ==="
+echo "=== Step 3: Install CUDA Toolkit 13.1 ==="
 # Check if CUDA toolkit already installed
 if ! command -v nvcc &> /dev/null; then
     echo "Installing CUDA toolkit..."
     apt install -y \
-        cuda-toolkit-12-6 \
-        libcu++-dev \
-        cuda-compiler-12-6 \
-        cuda-libraries-dev-12-6 \
-        cuda-driver-dev-12-6 \
-        cuda-cudart-dev-12-6
+        cuda-toolkit-13-1 \
+        cuda-drivers \
+        cuda-cudart-dev-13-1 \
+        libcu++-dev
 else
     echo "CUDA toolkit already installed: $(nvcc --version | grep release)"
 fi
@@ -128,20 +115,20 @@ echo ""
 echo "=== Step 3: Configure CUDA Environment ==="
 # Add CUDA to PATH permanently
 USER_BASHRC="/home/$DEB_USERNAME/.bashrc"
-if ! grep -q "/usr/local/cuda-12.6/bin" "$USER_BASHRC"; then
+if ! grep -q "/usr/local/cuda-13.1/bin" "$USER_BASHRC"; then
     echo "Configuring CUDA environment for user $DEB_USERNAME..."
-    echo 'export PATH=/usr/local/cuda-12.6/bin:$PATH' >> "$USER_BASHRC"
-    echo 'export LD_LIBRARY_PATH=/usr/local/cuda-12.6/lib64:$LD_LIBRARY_PATH' >> "$USER_BASHRC"
+    echo 'export PATH=/usr/local/cuda-13.1/bin:$PATH' >> "$USER_BASHRC"
+    echo 'export LD_LIBRARY_PATH=/usr/local/cuda-13.1/lib64:$LD_LIBRARY_PATH' >> "$USER_BASHRC"
     # Also add to system-wide bashrc for good measure
-    echo 'export PATH=/usr/local/cuda-12.6/bin:$PATH' >> /etc/bash.bashrc
-    echo 'export LD_LIBRARY_PATH=/usr/local/cuda-12.6/lib64:$LD_LIBRARY_PATH' >> /etc/bash.bashrc
+    echo 'export PATH=/usr/local/cuda-13.1/bin:$PATH' >> /etc/bash.bashrc
+    echo 'export LD_LIBRARY_PATH=/usr/local/cuda-13.1/lib64:$LD_LIBRARY_PATH' >> /etc/bash.bashrc
 else
     echo "CUDA environment already configured"
 fi
 
 # Create convenient symlink if it doesn't exist
 if [ ! -L /usr/local/cuda ]; then
-    ln -sf /usr/local/cuda-12.6 /usr/local/cuda
+    ln -sf /usr/local/cuda-13.1 /usr/local/cuda
 fi
 
 echo ""
@@ -190,7 +177,7 @@ echo "=== Installation Complete! ==="
 echo ""
 echo "Installed components:"
 echo "- Update System - Debian 13 (Trixie) supported"
-echo "- CUDA Toolkit 12.6"
+echo "- CUDA Toolkit 13.1"
 echo "- UV (ultra-fast Python package manager)"
 echo "- Development tools"
 echo "- Default user: $DEB_USERNAME"
@@ -203,7 +190,6 @@ echo "2. Log in as $DEB_USERNAME and test installations:"
 echo "   - nvcc --version"
 echo "   - nvidia-smi"
 echo "   - uv --version"
-echo "   - sdk version (SDKMAN)"
 echo ""
 echo "Perfect for Hugging Face models, LLaMA, and local AI development!"
 echo ""
