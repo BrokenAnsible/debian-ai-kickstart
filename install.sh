@@ -31,7 +31,9 @@ echo "Updating sources.list to include non-free repository..."
 cp /etc/apt/sources.list /etc/apt/sources.list.backup
 
 # Add non-free to lines that don't already have it
-sed -i 's/\(^deb .* main\)$/\1 non-free/' /etc/apt/sources.list
+if ! grep -q "contrib non-free non-free-firmware" /etc/apt/sources.list; then
+    sed -i 's/main non-free-firmware/main contrib non-free non-free-firmware/g' /etc/apt/sources.list
+fi
 
 echo ""
 echo "=== Step 1: System Update and Install Essential Tools ==="
@@ -151,8 +153,8 @@ if ! command -v uv &> /dev/null; then
     su - "$DEB_USERNAME" -c 'curl -LsSf https://astral.sh/uv/install.sh | sh'
 
      # Add UV to user's PATH
-    if ! grep -q "/.cargo/bin" /etc/bash.bashrc; then
-        echo 'export PATH="$HOME/.cargo/bin:$PATH"' >> /home/$DEB_USERNAME/.bashrc
+    if ! grep -q "/.local/bin" /etc/bash.bashrc; then
+        echo 'export PATH="$HOME/.local/bin:$PATH"' >> /home/$DEB_USERNAME/.bashrc
     fi
 
     # Test UV installation
@@ -169,8 +171,7 @@ echo "GPU access groups configured for $DEB_USERNAME"
 
 echo ""
 echo "=== Step 5: Final Cleanup ==="
-apt autoremove -y
-apt autoclean
+apt-mark manual nvidia-smi cuda-drivers
 
 echo ""
 echo "=== Installation Complete! ==="
