@@ -42,6 +42,7 @@ Once booted, blacklist the nouveau driver before running the script:
 echo "blacklist nouveau" | sudo tee /etc/modprobe.d/blacklist-nouveau.conf
 echo "options nouveau modeset=0" | sudo tee -a /etc/modprobe.d/blacklist-nouveau.conf
 sudo update-initramfs -u
+sudo reboot
 ```
 
 ### 3. Install curl
